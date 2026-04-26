@@ -1,0 +1,52 @@
+# ============================================================
+# requirements.txt — Translator Agent Environment
+# Compatible con Python 3.11 / 3.12 / 3.13
+# ============================================================
+
+# === Agent + LLM Tools ===
+aisuite
+anthropic
+docstring-parser
+markdown
+mistralai
+openai
+qrcode[pil]          # necesita Pillow para generar imágenes QR
+tavily-python
+textstat
+google-cloud-aiplatform  # SDK oficial de Vertex AI (reemplaza 'vertexai')
+
+# === Web Framework + API ===
+fastapi
+pydantic[email]      # incluye validación de email
+python-dotenv
+python-multipart
+requests
+sqlalchemy
+uvicorn[standard]    # incluye dependencias extras recomendadas (httptools, watchfiles)
+
+# === Notebook Experience ===
+ipywidgets
+jupyter_server
+jupyterlab           # reemplaza nbclassic (deprecated)
+notebook
+
+# === Data Analysis / Display ===
+duckdb
+matplotlib
+pandas
+seaborn
+tabulate
+tinydb
+
+# === Machine Learning / NLP ===
+jinja2
+psycopg2-binary
+scikit-learn
+
+# === LangChain / LangGraph ===
+langgraph
+langchain
+langchain-openai
+langchain-groq
+langchain-google-genai
+langchain-anthropic
