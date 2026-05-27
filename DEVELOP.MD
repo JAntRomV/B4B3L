@@ -28,17 +28,17 @@ pip install -r requirements.txt
 
 # Translate to Python
 ```
-python main.py -i Calculator.java -t python -o result.py
+python main.py -i Calculadora.java -t python -o result.py
 ```
 
 # Translate to JavaScript
 ```
-python main.py -i Calculator.java -t javascript -o result.js
+python main.py -i Calculadora.java -t javascript -o result.js
 ```
 
 # See direct result in console
 ```
-python main.py -i Calculator.java -t python
+python main.py -i Calculadora.java -t python
 
-python main.py -i Calculator.java -t javascript
+python main.py -i Calculadora.java -t javascript
 ```
