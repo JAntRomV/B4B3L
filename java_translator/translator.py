@@ -3,9 +3,8 @@ load_dotenv()
 # import anthropic
 from groq import Groq
 import os
-from prompts import get_system_prompt, get_user_prompt
+from java_translator.prompts import get_system_prompt, get_user_prompt
 
-# client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 def translate_code(java_code: str, target_lang: str) -> dict:
