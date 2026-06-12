@@ -1,4 +1,5 @@
 import argparse
+from java_translator.config import SUPPORTED_TARGETS
 from java_translator.translator_service import CodeTranslatorService, validate_arguments
 
 def main():
@@ -7,7 +8,15 @@ def main():
     )
     parser.add_argument("--input", "-i", help="Archivo .java de entrada (Uso individual)")
     parser.add_argument("--batch", "-b", help="Carpeta/Directorio con múltiples archivos .java (Uso en lote)")
-    parser.add_argument("--target", "-t", choices=["python", "javascript"], required=True, help="Lenguaje destino")
+    
+    # Choices dinámico gracias a list(SUPPORTED_TARGETS.keys())
+    parser.add_argument(
+        "--target", "-t", 
+        choices=list(SUPPORTED_TARGETS.keys()), 
+        required=True, 
+        help="Lenguaje destino"
+    )
+    
     parser.add_argument("--output", "-o", help="Archivo de salida (o carpeta de salida si usas --batch)")
     
     args = parser.parse_args()

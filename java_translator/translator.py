@@ -1,6 +1,5 @@
 from dotenv import load_dotenv
 load_dotenv()
-# import anthropic
 from groq import Groq
 import os
 from java_translator.prompts import get_system_prompt, get_user_prompt

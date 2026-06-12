@@ -3,13 +3,17 @@ import os
 from pathlib import Path
 from java_translator.translator import translate_code
 from java_translator.validator import validate_java_code
+from java_translator.config import SUPPORTED_TARGETS
 
 class CodeTranslatorService:
     """Clase de servicio encargada de la lógica de negocio de la traducción."""
 
     def __init__(self, target_language: str):
+        if target_language not in SUPPORTED_TARGETS:
+            raise ValueError(f"Lenguaje no soportado de manera interna: '{target_language}'")
+            
         self.target_language = target_language
-        self.extension = ".py" if target_language == "python" else ".js"
+        self.extension = SUPPORTED_TARGETS[target_language]
 
     def translate_file(self, input_path: str, output_path: str = None) -> bool:
         """Traduce un único archivo de forma aislada."""
