@@ -1,4 +1,4 @@
-# prompts.py
+from java_translator.config import TARGET_NAMES, SUPPORTED_TARGETS
 
 SYSTEM_PROMPTS = {
     "python": """Eres un experto en Java y Python. Tu tarea es traducir código Java a Python idiomático.
@@ -31,13 +31,12 @@ USER_PROMPT_TEMPLATE = "Traduce este código Java a {target_lang}:\n\n```java\n{
 def get_system_prompt(target_lang: str) -> str:
     """Retorna el prompt de sistema para el lenguaje destino."""
     if target_lang not in SYSTEM_PROMPTS:
-        raise ValueError(f"Lenguaje no soportado: '{target_lang}'. Usa 'python' o 'javascript'")
+        raise ValueError(f"Lenguaje no soportado: '{target_lang}'. Usa {list(SUPPORTED_TARGETS.keys())}")
     return SYSTEM_PROMPTS[target_lang]
-
 
 def get_user_prompt(java_code: str, target_lang: str) -> str:
     """Construye el mensaje de usuario con el código Java."""
     return USER_PROMPT_TEMPLATE.format(
-        target_lang=target_lang,
+        target_lang=TARGET_NAMES.get(target_lang, target_lang),
         java_code=java_code
     )
