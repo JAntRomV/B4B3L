@@ -1,22 +1,49 @@
 from dotenv import load_dotenv
-load_dotenv()
 from groq import Groq
 import os
 from java_translator.prompts import get_system_prompt, get_user_prompt
 
+load_dotenv()
+
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+def build_polyglot_wrapper(class_name: str, target_lang: str, raw_translated_string: str) -> str:
+    """Envuelve las líneas de string traducidas dentro del cascarón Java ejecutable de GraalVM."""
+    wrapper = f"""import org.graalvm.polyglot.*;
+
+public class {class_name}Poliglota {{
+    public static void main(String[] args) {{
+        System.out.println("=== Iniciando Ejecución Políglota de {class_name} en {target_lang.upper()} ===");
+        
+        try (Context context = Context.create()) {{
+            // Ejecución del bloque traducido usando GraalVM Truffle
+            Value result = context.eval("{target_lang}",
+{raw_translated_string}
+            );
+            
+            if (!result.isNull()) {{
+                System.out.println("\\n-> Resultado final devuelto a Java: " + result);
+            }}
+        }} catch (Exception e) {{
+            System.err.println("❌ Error en la ejecución políglota: " + e.getMessage());
+            e.printStackTrace();
+        }}
+    }}
+}}
+"""
+    return wrapper
 
 def translate_code(java_code: str, target_lang: str) -> dict:
     response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",  # modelo gratuito y potente
+        model="llama-3.3-70b-versatile",
         messages=[
             {
                 "role": "system",
-                "content": get_system_prompt(target_lang)   # <- desde prompts.py
+                "content": get_system_prompt(target_lang)
             },
             {
                 "role": "user",
-                "content": get_user_prompt(java_code, target_lang)  # <- desde prompts.py
+                "content": get_user_prompt(java_code, target_lang)
             }
         ],
         max_tokens=4096
@@ -24,9 +51,10 @@ def translate_code(java_code: str, target_lang: str) -> dict:
 
     translated = response.choices[0].message.content.strip()
     
+    # Limpieza de markdown si el LLM lo ignora
     if translated.startswith("```"):
         lines = translated.split("\n")
-        translated = "\n".join(lines[1:-1])
+        translated = "\n".join(lines[1:-1]).strip()
 
     return {
         "code": translated,

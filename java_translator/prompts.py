@@ -1,3 +1,4 @@
+# prompts.py
 from java_translator.config import TARGET_NAMES, SUPPORTED_TARGETS
 
 SYSTEM_PROMPTS = {
@@ -11,7 +12,8 @@ Reglas estrictas:
 - Usa snake_case para variables y funciones (Java usa camelCase)
 - Omite getters/setters verbosos: usa @property o atributos directos
 - Maneja excepciones con try/except en vez de try/catch
-- Devuelve SOLO el código, sin explicaciones ni bloques markdown""",
+- El formato de salida DEBE ser en formato String de Java concatenado: cada línea de Python envuelta entre comillas dobles, con \\n al final y un signo + al terminar la línea.
+- Devuelve SOLO las líneas de string de Java, sin explicaciones, sin bloques markdown, ni la declaración del contexto.""",
 
     "javascript": """Eres un experto en Java y JavaScript moderno (ES2022+). Tu tarea es traducir código Java a JavaScript idiomático.
 
@@ -22,11 +24,11 @@ Reglas estrictas:
 - System.out.println → console.log
 - Maneja asincronía con async/await si hay I/O
 - Usa template literals en vez de concatenación de strings
-- Devuelve SOLO el código, sin explicaciones ni bloques markdown"""
+- El formato de salida DEBE ser en formato String de Java concatenado: cada línea de JS envuelta entre comillas dobles, con \\n al final y un signo + al terminar la línea.
+- Devuelve SOLO las líneas de string de Java, sin explicaciones, sin bloques markdown, ni la declaración del contexto."""
 }
 
-USER_PROMPT_TEMPLATE = "Traduce este código Java a {target_lang}:\n\n```java\n{java_code}\n```"
-
+USER_PROMPT_TEMPLATE = "Traduce este código Java a {target_lang} formateado como un bloque String continuo para Java:\n\n```java\n{java_code}\n```"
 
 def get_system_prompt(target_lang: str) -> str:
     """Retorna el prompt de sistema para el lenguaje destino."""
