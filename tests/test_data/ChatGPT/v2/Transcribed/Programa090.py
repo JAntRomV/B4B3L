@@ -1,0 +1,9 @@
+def programa_090():
+    a = int(input("Ingresa el primer número: "))
+    b = int(input("Ingresa el segundo número: "))
+    resultado = 0
+    for _ in range(b):
+        resultado += a
+    print(f"Resultado: {resultado}")
+
+programa_090()
