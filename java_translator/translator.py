@@ -1,4 +1,5 @@
 import os
+import re
 from dotenv import load_dotenv
 from groq import Groq
 from openai import OpenAI
@@ -46,20 +47,72 @@ def _clean_markdown(code_text: str) -> str:
         cleaned = "\n".join(lines[1:-1]).strip()
     return cleaned
 
-def translate_code(java_code: str, target_language: str, api_key: str = None) -> dict:
+def clean_standard_output(code: str) -> str:
+    """Sanitiza la salida del LLM en modo 'standard' para garantizar código plano.
+
+    Elimina:
+    - Bloques de código Markdown (```lang ... ```)
+    - Formato de comillas y concatenaciones tipo Java (ej. "def sumar():\\n" +)
+    - Saltos de línea o comillas escapadas explícitamente (\\n, \\")
+
+    Args:
+        code: Texto devuelto por el LLM.
+
+    Returns:
+        Código fuente limpio como string plano con saltos de línea normales.
+    """
+    if not code:
+        return ""
+
+    # 1. Remover bloques Markdown (```lang\n...\n```)
+    code = re.sub(r"```[a-zA-Z]*\n?", "", code)
+    code = re.sub(r"```", "", code)
+
+    stripped = code.strip()
+
+    # 2. Si el texto viene envuelto en formato de concatenación de Java
+    #    (ej. "def sumar():\n" + o líneas rodeadas por comillas con signo +)
+    if '"+' in stripped or '+\n"' in stripped or (stripped.startswith('"') and ('+' in stripped or stripped.endswith('"'))):
+        clean_lines = []
+        for line in stripped.splitlines():
+            l = line.strip()
+            # Eliminar comilla inicial
+            l = re.sub(r'^\s*"', '', l)
+            # Eliminar comilla final, salto de línea escapado y signo + si existen
+            l = re.sub(r'(?:\\n)?\s*"\s*\+?\s*$', '', l)
+            clean_lines.append(l)
+        stripped = "\n".join(clean_lines)
+
+    # 3. Reemplazar saltos de línea y comillas escapadas explícitas si quedaron literales
+    stripped = stripped.replace("\\n", "\n").replace('\\"', '"')
+
+    return stripped.strip()
+
+
+def translate_code(java_code: str, target_language: str, api_key: str = None, mode: str = "polyglot") -> dict:
     """
     Traduce código Java a un lenguaje destino soportando múltiples proveedores de manera dinámica.
     Detecta automáticamente el proveedor basado en el prefijo de la API Key.
+
+    Args:
+        java_code: Código fuente Java a traducir.
+        target_language: Lenguaje destino (ej. 'python', 'javascript').
+        api_key: API Key del proveedor LLM. Si es None, se lee del entorno.
+        mode: Modo de traducción — 'standard' para código plano ejecutable,
+              'polyglot' para cadenas concatenadas de Java (envoltorio GraalVM).
+
+    Returns:
+        Diccionario con claves 'code' (str) y 'tokens' (dict) o 'error' (str).
     """
     # 1. Recuperar la API Key (de los parámetros o del entorno)
     key = api_key or os.getenv("GROQ_API_KEY") or os.getenv("OPENAI_API_KEY")
     if not key:
         raise ValueError("No se proporcionó ninguna API Key válida.")
 
-    # 2. Preparar los prompts estructurados del proyecto
-    system_prompt = get_system_prompt(target_language)
-    user_prompt = get_user_prompt(java_code, target_language)
-    
+    # 2. Preparar los prompts estructurados según el modo solicitado
+    system_prompt = get_system_prompt(target_language, mode=mode)
+    user_prompt = get_user_prompt(java_code, target_language, mode=mode)
+
     codigo_traducido = ""
     tokens_info = {"input": 0, "output": 0}
 
@@ -128,9 +181,14 @@ def translate_code(java_code: str, target_language: str, api_key: str = None) ->
                 "output": response.usage.completion_tokens
             }
 
-        # 4. Limpieza del código de salida y retorno estructurado
-        translated_clean = _clean_markdown(codigo_traducido)
-        
+        # 4. Post-procesamiento según el modo
+        if mode == "standard":
+            # Aplicar sanitización completa: elimina Markdown y concatenaciones Java
+            translated_clean = clean_standard_output(codigo_traducido)
+        else:
+            # Modo polyglot: solo limpiar posibles bloques Markdown sobrantes
+            translated_clean = _clean_markdown(codigo_traducido)
+
         return {
             "code": translated_clean,
             "tokens": tokens_info

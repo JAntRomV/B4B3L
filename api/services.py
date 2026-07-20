@@ -22,23 +22,24 @@ async def process_single_java_file(file: UploadFile, target_language: str, mode:
     """
     class_name = Path(file.filename).stem
     content = await file.read()
-    
-    # CORRECCIÓN: Ahora pasamos la api_key recibida desde el endpoint
-    translation_result = translate_code(content.decode("utf-8"), target_language, api_key=api_key)
+
+    # Pasamos mode para que el LLM use el prompt correcto (standard vs polyglot)
+    translation_result = translate_code(content.decode("utf-8"), target_language, api_key=api_key, mode=mode)
     raw_code = translation_result["code"]
-    
+
     if mode == "polyglot":
         codigo_final = build_polyglot_wrapper(class_name, target_language, raw_code)
         output_filename = f"{class_name}Poliglota.java"
         media_type = "text/x-java-source"
     else:
+        # En modo standard, raw_code ya es código plano limpio
         codigo_final = raw_code
         output_filename = f"{class_name}{get_file_extension(target_language)}"
         media_type = "text/plain"
-    
+
     tmp_output_path = TMP_DIR / output_filename
     tmp_output_path.write_text(codigo_final, encoding="utf-8")
-    
+
     return tmp_output_path, output_filename, media_type
 
 
@@ -74,79 +75,19 @@ async def process_zip_batch(file: UploadFile, target_language: str, mode: str, a
         for java_file_path in java_files:
             class_name = java_file_path.stem
             java_code = java_file_path.read_text(encoding="utf-8")
-            
-            # CORRECCIÓN: Pasamos la api_key a cada traducción del lote
-            translation_result = translate_code(java_code, target_language, api_key=api_key)
+
+            # Pasamos mode para seleccionar el prompt y post-procesamiento correctos
+            translation_result = translate_code(java_code, target_language, api_key=api_key, mode=mode)
             raw_code = translation_result["code"]
-            
+
             if mode == "polyglot":
                 codigo_final = build_polyglot_wrapper(class_name, target_language, raw_code)
                 new_name = f"{class_name}Poliglota.java"
             else:
+                # En modo standard, raw_code ya es código plano limpio
                 codigo_final = raw_code
                 new_name = f"{class_name}{get_file_extension(target_language)}"
-            
-            # Replicar la estructura de carpetas original en el output
-            relative_path = java_file_path.relative_to(extract_dir)
-            out_file_path = (output_dir / relative_path).with_name(new_name)
-            out_file_path.parent.mkdir(parents=True, exist_ok=True)
-            out_file_path.write_text(codigo_final, encoding="utf-8")
 
-        # Comprimir resultados
-        with zipfile.ZipFile(zip_out_path, 'w', zipfile.ZIP_DEFLATED) as zip_out:
-            for file_to_zip in output_dir.glob("**/*"):
-                if file_to_zip.is_file():
-                    zip_out.write(file_to_zip, file_to_zip.relative_to(output_dir))
-
-        return zip_out_path
-
-    finally:
-        # Limpieza absoluta de temporales locales de este hilo/petición
-        if extract_dir.exists(): shutil.rmtree(extract_dir)
-        if output_dir.exists(): shutil.rmtree(output_dir)
-        if zip_in_path.exists(): os.remove(zip_in_path)
-    """
-    Descomprime un archivo ZIP, traduce todos los archivos .java internos
-    respetando el árbol de directorios y empaqueta el resultado en un nuevo ZIP.
-    Retorna la ruta del archivo ZIP resultante.
-    """
-    upload_id = os.urandom(4).hex()
-    extract_dir = TMP_DIR / f"extract_{upload_id}"
-    output_dir = TMP_DIR / f"output_{upload_id}"
-    extract_dir.mkdir()
-    output_dir.mkdir()
-
-    zip_in_path = TMP_DIR / f"{upload_id}_{file.filename}"
-    zip_out_path = TMP_DIR / f"resultado_{upload_id}.zip"
-
-    try:
-        # Guardar ZIP entrante
-        with open(zip_in_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-
-        # Extraer contenido
-        with zipfile.ZipFile(zip_in_path, 'r') as zip_ref:
-            zip_ref.extractall(extract_dir)
-
-        java_files = list(extract_dir.glob("**/*.java"))
-        if not java_files:
-            raise HTTPException(status_code=400, detail="No hay archivos .java dentro del archivo ZIP provisto.")
-
-        # Procesar lote iterativamente
-        for java_file_path in java_files:
-            class_name = java_file_path.stem
-            java_code = java_file_path.read_text(encoding="utf-8")
-            
-            translation_result = translate_code(java_code, target_language)
-            raw_code = translation_result["code"]
-            
-            if mode == "polyglot":
-                codigo_final = build_polyglot_wrapper(class_name, target_language, raw_code)
-                new_name = f"{class_name}Poliglota.java"
-            else:
-                codigo_final = raw_code
-                new_name = f"{class_name}{get_file_extension(target_language)}"
-            
             # Replicar la estructura de carpetas original en el output
             relative_path = java_file_path.relative_to(extract_dir)
             out_file_path = (output_dir / relative_path).with_name(new_name)

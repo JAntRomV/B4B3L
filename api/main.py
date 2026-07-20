@@ -48,8 +48,8 @@ async def translate_text_endpoint(
         raise HTTPException(status_code=400, detail="El parámetro 'mode' debe ser 'standard' o 'polyglot'.")
     
     try:
-        # Pasamos la api_key dinámicamente al traductor polimórfico
-        translation_result = translate_code(request.code, request.target_language, api_key=api_key)
+        # Pasamos api_key y mode dinámicamente al traductor polimórfico
+        translation_result = translate_code(request.code, request.target_language, api_key=api_key, mode=request.mode)
         
         if "error" in translation_result:
             raise HTTPException(status_code=400, detail=translation_result["error"])
