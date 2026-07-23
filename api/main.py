@@ -1,6 +1,5 @@
 from fastapi import FastAPI, Depends, File, UploadFile, Query, HTTPException, Header
 from fastapi.responses import FileResponse
-from fastapi.middleware.cors import CORSMiddleware
 
 # Componentes de arquitectura de la API
 from api.schemas import TranslationRequest
@@ -39,23 +38,6 @@ API del motor **B4B3L** para la traducción avanzada de código Java con soporte
     swagger_ui_parameters={"defaultModelsExpandDepth": -1}
 )
 
-# CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# RUTA DE PRUEBA (HEALTH CHECK)
-@app.get("/", tags=["Health Check"])
-async def root():
-    return {
-        "status": "success",
-        "message": "API de B4B3L en linea",
-    }
-
 # TRADUCCIÓN POR TEXTO (JSON)
 @app.post("/api/v1/translate/text", tags=["Main"])
 async def translate_text_endpoint(
@@ -66,8 +48,8 @@ async def translate_text_endpoint(
         raise HTTPException(status_code=400, detail="El parámetro 'mode' debe ser 'standard' o 'polyglot'.")
     
     try:
-        # Pasamos la api_key dinámicamente al traductor polimórfico
-        translation_result = translate_code(request.code, request.target_language, api_key=api_key)
+        # Pasamos api_key y mode dinámicamente al traductor polimórfico
+        translation_result = translate_code(request.code, request.target_language, api_key=api_key, mode=request.mode)
         
         if "error" in translation_result:
             raise HTTPException(status_code=400, detail=translation_result["error"])
