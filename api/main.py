@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Depends, File, UploadFile, Query, HTTPException, Header
 from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware  # <-- 1. IMPORTAR MIDDLEWARE
 
 # Componentes de arquitectura de la API
 from api.schemas import TranslationRequest
@@ -36,6 +37,24 @@ API del motor **B4B3L** para la traducción avanzada de código Java con soporte
 ⚠️ *Requieres autenticación mediante la cabecera **X-API-Key** (acepta tokens de Groq, OpenAI, Gemini y Anthropic).*
 """,
     swagger_ui_parameters={"defaultModelsExpandDepth": -1}
+)
+
+# <-- 2. CONFIGURACIÓN DE CORS -->
+# Orígenes permitidos: frontend en producción (Vercel) y entorno local de desarrollo
+ALLOWED_ORIGINS = [
+    "https://b4b3l.vercel.app",   # Frontend en producción
+    "http://localhost:5173",       # Frontend en desarrollo (Vite)
+    "http://localhost:3000",       # Next.js/React local (por si acaso)
+    "http://localhost:8000",       # Swagger UI local
+    "http://127.0.0.1:8000",       # IP local alternativa
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,   
+    allow_methods=["*"], 
+    allow_headers=["*"],  
 )
 
 # TRADUCCIÓN POR TEXTO (JSON)
