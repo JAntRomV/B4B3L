@@ -8,6 +8,8 @@ import {
   LuFileCode,
   LuServer,
   LuCopyright,
+  LuGithub,
+  LuSparkles,
 } from "react-icons/lu";
 
 export default function TranslationDashboard() {
@@ -46,6 +48,15 @@ export default function TranslationDashboard() {
                 <LuFileCode className="text-sm" />
                 API DOCS
               </a>
+              <a
+                href="https://github.com/JAntRomV/B4B3L"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer flex items-center gap-1.5 rounded-md px-3 py-1.5 text-slate-500 hover:text-indigo-600 hover:bg-slate-50"
+              >
+                <LuGithub className="text-sm" />
+                REPO
+              </a>
             </nav>
           </div>
 
@@ -58,12 +69,55 @@ export default function TranslationDashboard() {
       </header>
 
       {/* ── Main Content ───────────────────────────────────────────────────── */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-8 py-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Panel izquierdo: Formulario de entrada */}
-        <TranslationForm apiKey={apiKey} />
+      <main className="flex-1 max-w-7xl w-full mx-auto px-8 py-8 flex flex-col gap-8">
+        {/* Banner de Introducción y Descripción */}
+        <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs relative overflow-hidden">
+          <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-indigo-50/80 rounded-full blur-2xl pointer-events-none" />
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
+            <div className="space-y-2 max-w-3xl">
+              <div className="flex items-center gap-2"></div>
+              <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+                Bienvenido a B4B3L
+              </h1>
+              <p className="text-sm text-slate-600 leading-relaxed text-justify">
+                B4B3L es un motor especializado en la traducción y conversión
+                automatizada de código escrito en <strong>Java</strong> hacia
+                otros lenguajes de programación como <strong>Python</strong> y{" "}
+                <strong>JavaScript</strong>. Permite ingresar código
+                directamente en el editor o subir archivos individuales{" "}
+                <code className="bg-slate-100 px-1.5 py-0.5 rounded text-indigo-600 font-mono text-xs font-semibold">
+                  .java
+                </code>{" "}
+                o carpetas de archivos Java comprimidos en archivos tipo{" "}
+                <code className="bg-slate-100 px-1.5 py-0.5 rounded text-indigo-600 font-mono text-xs font-semibold">
+                  .zip
+                </code>
+                , soportando modalidades de traducción <em>Estándar</em> y{" "}
+                <em>Políglota</em>. Para comenzar, ingresa la{" "}
+                <strong>API key de un modelo de IA</strong> en el campo ubicado
+                en la esquina superior derecha. Una vez configurada, estarás
+                listo para comenzar.
+              </p>
+            </div>
+            <div className="flex items-center gap-3 shrink-0">
+              <a
+                href="https://github.com/JAntRomV/B4B3L"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 transition-colors shadow-xs"
+              >
+                <LuGithub className="text-base" />
+                Ver Repositorio
+              </a>
+            </div>
+          </div>
+        </section>
 
-        {/* Panel derecho: Resultados */}
-        <TranslationOutput />
+        {/* Panel izquierdo: Formulario de entrada | Panel derecho: Resultados */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <TranslationForm apiKey={apiKey} />
+          <TranslationOutput />
+        </div>
       </main>
 
       {/* ── Footer ─────────────────────────────────────────────────────────── */}
